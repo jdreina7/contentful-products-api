@@ -1,0 +1,374 @@
+{
+	"info": {
+		"_postman_id": "5944bfab-3392-41a6-90f5-04f2d42ee325",
+		"name": "Contentful Products Report API",
+		"description": "Complete API collection for managing products from Contentful and generating reports. Uses JWT authentication with automatic token management.",
+		"schema": "https://schema.getpostman.com/json/collection/v2.0.0/collection.json",
+		"_exporter_id": "4921348",
+		"_collection_link": "https://septum-crm.postman.co/workspace/Septum---CRM-Workspace~e4f1a7f1-9bfe-4c9a-8041-0de3753b1780/collection/4921348-5944bfab-3392-41a6-90f5-04f2d42ee325?action=share&source=collection_link&creator=4921348"
+	},
+	"item": [
+		{
+			"name": "Auth",
+			"description": "Authentication endpoints for generating JWT tokens",
+			"item": [
+				{
+					"name": "Generate JWT Token",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"// Automatically save the JWT token to environment variable",
+									"var jsonData = pm.response.json();",
+									"if (jsonData.access_token) {",
+									"    pm.environment.set(\"token\", jsonData.access_token);",
+									"    console.log(\"✅ JWT token saved to environment:\", jsonData.access_token);",
+									"} else {",
+									"    console.log(\"❌ No token received\");",
+									"}"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"auth": {
+							"type": "noauth"
+						},
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"apiKey\": \"{{api_key}}\"\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": "{{base_url}}/auth/token",
+						"description": "Generate a JWT token using the API Key. The token is automatically saved to the environment variable 'token' and will be used for protected endpoints."
+					},
+					"response": []
+				}
+			]
+		},
+		{
+			"name": "Health",
+			"description": "Health check endpoints to monitor API and dependencies status",
+			"item": [
+				{
+					"name": "Check API Health",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": "{{base_url}}/health",
+						"description": "Check the health status of the API, MongoDB connection, and Contentful API integration."
+					},
+					"response": []
+				}
+			]
+		},
+		{
+			"name": "Products",
+			"description": "Product management endpoints - CRUD operations and synchronization",
+			"item": [
+				{
+					"name": "List All Products (with filters)",
+					"request": {
+						"auth": {
+							"type": "noauth"
+						},
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{base_url}}/products?page=1&limit=10",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"products"
+							],
+							"query": [
+								{
+									"key": "page",
+									"value": "1",
+									"description": "Page number (default: 1)"
+								},
+								{
+									"key": "limit",
+									"value": "10",
+									"description": "Items per page (default: 5)"
+								},
+								{
+									"key": "name",
+									"value": "Nike",
+									"description": "Filter by product name",
+									"disabled": true
+								},
+								{
+									"key": "brand",
+									"value": "Nike",
+									"description": "Filter by brand",
+									"disabled": true
+								},
+								{
+									"key": "category",
+									"value": "Footwear",
+									"description": "Filter by category",
+									"disabled": true
+								},
+								{
+									"key": "color",
+									"value": "Black",
+									"description": "Filter by color",
+									"disabled": true
+								},
+								{
+									"key": "minPrice",
+									"value": "50",
+									"description": "Minimum price",
+									"disabled": true
+								},
+								{
+									"key": "maxPrice",
+									"value": "200",
+									"description": "Maximum price",
+									"disabled": true
+								},
+								{
+									"key": "sku",
+									"value": "12345",
+									"description": "Filter by SKU",
+									"disabled": true
+								}
+							]
+						},
+						"description": "Get paginated list of products with optional filters: name, brand, category, color, price range, and SKU."
+					},
+					"response": []
+				},
+				{
+					"name": "Get Product by ID",
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": {
+								"token": "{{token}}"
+							}
+						},
+						"method": "GET",
+						"header": [],
+						"url": "{{base_url}}/products/{{product_id}}",
+						"description": "Get a specific product by its MongoDB ID. Requires JWT authentication."
+					},
+					"response": []
+				},
+				{
+					"name": "Soft Delete Product",
+					"request": {
+						"auth": {
+							"type": "noauth"
+						},
+						"method": "DELETE",
+						"header": [],
+						"url": "{{base_url}}/products/{{product_id}}",
+						"description": "Soft delete a product (marks as deleted but preserves data). Does not require authentication."
+					},
+					"response": []
+				},
+				{
+					"name": "Sync Products from Contentful",
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": {
+								"token": "{{token}}"
+							}
+						},
+						"method": "POST",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": "",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": "{{base_url}}/products/sync",
+						"description": "Manually trigger synchronization of products from Contentful CMS. Requires JWT authentication."
+					},
+					"response": []
+				},
+				{
+					"name": "Truncate All Products (⚠️ DANGER)",
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": {
+								"token": "{{token}}"
+							}
+						},
+						"method": "DELETE",
+						"header": [],
+						"url": "{{base_url}}/products/truncate",
+						"description": "⚠️ DANGER: Delete ALL products from the database. This action cannot be undone. Requires JWT authentication."
+					},
+					"response": []
+				}
+			]
+		},
+		{
+			"name": "Reports",
+			"description": "Analytics and reporting endpoints - All protected with JWT authentication",
+			"item": [
+				{
+					"name": "Deleted Products Percentage",
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": {
+								"token": "{{token}}"
+							}
+						},
+						"method": "GET",
+						"header": [],
+						"url": "{{base_url}}/reports/deleted-percentage",
+						"description": "Get statistics about deleted vs active products, including percentage of deleted products."
+					},
+					"response": []
+				},
+				{
+					"name": "Products by Category",
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": {
+								"token": "{{token}}"
+							}
+						},
+						"method": "GET",
+						"header": [],
+						"url": "{{base_url}}/reports/by-category",
+						"description": "Get products distribution grouped by category with statistics (count, percentage, price ranges, stock)."
+					},
+					"response": []
+				},
+				{
+					"name": "Price Distribution",
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": {
+								"token": "{{token}}"
+							}
+						},
+						"method": "GET",
+						"header": [],
+						"url": "{{base_url}}/reports/price-distribution",
+						"description": "Get product distribution across different price ranges with count and percentage."
+					},
+					"response": []
+				},
+				{
+					"name": "Non-Deleted Products Stats",
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": {
+								"token": "{{token}}"
+							}
+						},
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{base_url}}/reports/non-deleted-stats?hasPrice=true&startDate=2025-01-01&endDate=2025-01-31",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"reports",
+								"non-deleted-stats"
+							],
+							"query": [
+								{
+									"key": "hasPrice",
+									"value": "true",
+									"description": "Filter products with/without price (optional)"
+								},
+								{
+									"key": "startDate",
+									"value": "2025-01-01",
+									"description": "Start date for filtering (YYYY-MM-DD, optional)"
+								},
+								{
+									"key": "endDate",
+									"value": "2025-01-31",
+									"description": "End date for filtering (YYYY-MM-DD, optional)"
+								}
+							]
+						},
+						"description": "Get statistics for non-deleted products with optional filters by price availability and date range."
+					},
+					"response": []
+				}
+			]
+		}
+	],
+	"auth": {
+		"type": "bearer",
+		"bearer": {
+			"token": "{{token}}"
+		}
+	},
+	"event": [
+		{
+			"listen": "prerequest",
+			"script": {
+				"type": "text/javascript",
+				"exec": [
+					""
+				]
+			}
+		},
+		{
+			"listen": "test",
+			"script": {
+				"type": "text/javascript",
+				"exec": [
+					""
+				]
+			}
+		}
+	],
+	"variable": [
+		{
+			"key": "base_url",
+			"value": "http://localhost:3000/api/v1",
+			"type": "string"
+		},
+		{
+			"key": "api_key",
+			"value": "apply-digital-secret-key-2024",
+			"type": "string"
+		},
+		{
+			"key": "token",
+			"value": "",
+			"type": "string"
+		},
+		{
+			"key": "product_id",
+			"value": "691ab458d98e7f93041d7993",
+			"type": "string"
+		}
+	]
+}
